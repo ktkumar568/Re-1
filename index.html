@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Rialo — Quiz Tool</title>
+  <style>
+    :root{
+      --bg:#0b0b0b; /* deep black */
+      --panel:#141414; /* near black */
+      --muted:#9aa0a6; /* gray text */
+      --accent:#bfbfbf; /* light gray */
+      --accent-2:#7f7f7f; /* medium gray */
+      --correct:#2e7d32;
+      --wrong:#b71c1c;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    html,body{height:100%;}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,var(--bg),#0f0f0f 60%);
+      color:var(--accent);
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
+    }
+    .container{
+      width:960px;
+      max-width:96%;
+      background:linear-gradient(180deg,var(--panel),#0e0e0e);
+      border:1px solid rgba(255,255,255,0.03);
+      box-shadow:0 8px 30px rgba(0,0,0,0.75);
+      border-radius:14px;
+      padding:26px;
+    }
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    .brand{display:flex;gap:14px;align-items:center}
+    .logo{
+      width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a1a,#2a2a2a);border:1px solid rgba(255,255,255,0.03)
+    }
+    .logo strong{color:var(--accent-2);font-size:18px}
+    h1{font-size:20px;margin:0;color:#f7f7f7}
+    .subtitle{font-size:12px;color:var(--muted)}
+
+    .meta{display:flex;gap:12px;align-items:center}
+    .chip{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:999px;font-size:13px;color:var(--muted)}
+
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);padding:22px;border-radius:12px;margin-top:12px;border:1px solid rgba(255,255,255,0.02)}
+
+    .question-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .progress{height:10px;background:linear-gradient(90deg,#111,#0b0b0b);border-radius:999px;overflow:hidden;width:60%}
+    .progress > i{display:block;height:100%;background:linear-gradient(90deg,#4a4a4a,#8a8a8a);width:0%}
+
+    .question{font-size:18px;margin:8px 0 16px;color:#fff}
+    .options{display:grid;gap:10px}
+    .opt{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:14px;border-radius:10px;cursor:pointer;font-size:15px;color:var(--accent);display:flex;align-items:center;gap:12px}
+    .opt:hover{border-color:rgba(255,255,255,0.07)}
+    .opt input{accent-color:var(--accent)}
+    .controls{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
+    .btn{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:10px 14px;border-radius:10px;color:var(--accent);cursor:pointer}
+    .btn.primary{background:#1f1f1f;border:1px solid rgba(255,255,255,0.06)}
+    .score{font-size:14px;color:var(--muted)}
+
+    .result{display:none;padding:20px;border-radius:12px;margin-top:14px}
+    .result.show{display:block}
+    .result h2{margin:0 0 8px;color:#fff}
+    .review{margin-top:12px}
+    .qa{padding:12px;border-radius:8px;background:rgba(255,255,255,0.02);margin-bottom:10px}
+    .correct{color:var(--correct);font-weight:600}
+    .wrong{color:var(--wrong);font-weight:600}
+
+    footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
+
+    @media (max-width:560px){
+      .container{padding:16px}
+      .logo{width:44px;height:44px}
+      h1{font-size:16px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="application" aria-label="Rialo Quiz Tool">
+    <header>
+      <div class="brand">
+        <div class="logo"><strong>R</strong></div>
+        <div>
+          <h1>Rialo — Quiz Tool</h1>
+          <div class="subtitle">Black & Gray theme — 10 multiple-choice questions</div>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="chip" id="qcount">Question 1 / 10</div>
+        <div class="chip" id="timer">—</div>
+      </div>
+    </header>
+
+    <main class="card" id="quiz">
+      <div class="question-meta">
+        <div class="progress" aria-hidden="true"><i id="progressBar"></i></div>
+        <div class="score" id="scoreDisplay">Score: 0</div>
+      </div>
+
+      <div>
+        <div class="question" id="questionText">Loading…</div>
+        <div class="options" id="options"></div>
+      </div>
+
+      <div class="controls">
+        <div>
+          <button class="btn" id="prevBtn">⟵ Prev</button>
+          <button class="btn primary" id="nextBtn">Next ⟶</button>
+        </div>
+        <div>
+          <button class="btn" id="submitBtn">Submit Quiz</button>
+        </div>
+      </div>
+
+      <div class="result" id="resultPanel" aria-live="polite">
+        <h2 id="resultTitle">Your Score</h2>
+        <div id="resultSummary" class="subtitle"></div>
+        <div class="review" id="reviewList"></div>
+      </div>
+    </main>
+
+    <footer>Built with ❤ — Rialo Quiz • Black & Gray</footer>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        q: "What is Re?",
+        opts: ["A. A traditional insurance company","B. A decentralized reinsurance protocol","C. A crypto exchange","D. A lending platform"],
+        answer: 1,
+        explain: "Re is described as a decentralized reinsurance protocol."
+      },
+      {
+        q: "What is the annual yield (APY) mentioned for Re’s insurance-like product?",
+        opts: ["A. 8%","B. 12%","C. 16%","D. 23%"],
+        answer: 2,
+        explain: "The site references approximately 16% APY for certain strategies."
+      },
+      {
+        q: "Which of the following is not a feature of Re’s insurance framework?",
+        opts: ["A. Fully collateralized U.S. insurance programs","B. Transparent and on-chain operations","C. High exposure to catastrophic risk lines","D. Loss reserves retained by Re"],
+        answer: 2,
+        explain: "High exposure to catastrophic risk lines is not listed as a feature."
+      },
+      {
+        q: "Which vault strategy is intended to 'park capital, skip the risk'?",
+        opts: ["A. Insurance vault","B. reUSDe","C. reUSD","D. Basis-Plus"],
+        answer: 3,
+        explain: "Basis-Plus is described as a lower-risk 'park capital' strategy."
+      },
+      {
+        q: "Which line(s) of business does Re include in its diversified insurance portfolio?",
+        opts: ["A. Homeowners, Auto, Workers’ Compensation, Small Business","B. Life insurance only","C. Health insurance only","D. Travel insurance only"],
+        answer: 0,
+        explain: "The portfolio includes multiple lines like Homeowners, Auto, Workers' Comp, and Small Business."
+      },
+      {
+        q: "What is the approximate total written premium mentioned on the site?",
+        opts: ["A. $100M","B. $174M","C. $250M","D. $50M"],
+        answer: 1,
+        explain: "$174M is the approximate figure referenced."
+      },
+      {
+        q: "Which of these is not listed as a 'best for' target user group?",
+        opts: ["A. Crypto-native treasuries","B. Short-term traders seeking high leverage","C. Long-horizon allocators comfortable with lock periods","D. Investors seeking uncorrelated yield"],
+        answer: 1,
+        explain: "Short-term traders seeking high leverage are not a target user group."
+      },
+      {
+        q: "Which yield is associated with the 'Basis-Plus' capital strategy?",
+        opts: ["A. 16%","B. 8%","C. 23%","D. 12%"],
+        answer: 1,
+        explain: "Basis-Plus was associated with an ~8% yield in the site copy."
+      },
+      {
+        q: "What is one of the risk management tools Re uses?",
+        opts: ["A. Speculation on crypto volatility","B. Uncollateralized underwriting","C. Retaining loss reserves","D. Unlimited leverage"],
+        answer: 2,
+        explain: "Retaining loss reserves is a listed risk management approach."
+      },
+      {
+        q: "What does Re aim to connect?",
+        opts: ["A. Retail borrowers to lenders","B. Digital capital to insurance risk","C. NFT artists to buyers","D. Stablecoins to governance tokens"],
+        answer: 1,
+        explain: "The project aims to connect
